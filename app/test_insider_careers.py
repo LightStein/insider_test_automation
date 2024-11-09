@@ -36,12 +36,6 @@ def setup():
             options.add_argument('--headless')
             options.add_argument('--no-sandbox')
             options.add_argument('--disable-dev-shm-usage')
-        driver = webdriver.Chrome(options=options)
-    elif browser == 'firefox':
-        from selenium.webdriver.firefox.options import Options
-        options = Options()
-        if headless:
-            options.add_argument('--headless')
         driver = webdriver.Remote(command_executor=chrome_node_url, desired_capabilities=DesiredCapabilities.CHROME)
     else:
         raise ValueError(f"Unsupported browser: {browser}")
