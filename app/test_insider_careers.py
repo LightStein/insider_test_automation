@@ -8,6 +8,11 @@ import time
 import os
 from selenium.common.exceptions import TimeoutException
 
+from selenium import webdriver
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+
+chrome_node_url = "http://chrome-node-service:4444/wd/hub"  # Replace with the appropriate DNS or service address
+
 # Initialize the WebDriver
 driver = webdriver.Chrome()
 driver.maximize_window()
@@ -37,7 +42,7 @@ def setup():
         options = Options()
         if headless:
             options.add_argument('--headless')
-        driver = webdriver.Firefox(options=options)
+        driver = webdriver.Remote(command_executor=chrome_node_url, desired_capabilities=DesiredCapabilities.CHROME)
     else:
         raise ValueError(f"Unsupported browser: {browser}")
 
