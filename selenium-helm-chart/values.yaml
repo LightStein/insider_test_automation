@@ -1,5 +1,5 @@
 testController:
-  image: "your-dockerhub-user/test-controller:latest"
+  image: "nautilus444/test-controller:latest"
 
 chromeNode:
   replicas: 3
