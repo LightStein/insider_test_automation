@@ -1,0 +1,5 @@
+testController:
+  image: "your-dockerhub-user/test-controller:latest"
+
+chromeNode:
+  replicas: 3
