@@ -1,9 +1,10 @@
+# templates/chrome-node-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: chrome-node-deployment
+  name: {{ .Release.Name }}-chrome-node
 spec:
-  replicas: "{{ .Values.chromeNode.replicas }}"
+  replicas: {{ .Values.chromeNode.replicas }}
   selector:
     matchLabels:
       app: chrome-node
@@ -14,6 +15,7 @@ spec:
     spec:
       containers:
         - name: chrome-node
-          image: selenium/standalone-chrome:latest
+          image: "{{ .Values.chromeNode.image.repository }}:{{ .Values.chromeNode.image.tag }}"
           ports:
             - containerPort: 4444
+          imagePullPolicy: {{ .Values.chromeNode.image.pullPolicy }}

@@ -1,9 +1,10 @@
+# templates/test-controller-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: test-controller-deployment
+  name: {{ .Release.Name }}-test-controller
 spec:
-  replicas: 1
+  replicas: {{ .Values.testController.replicas }}
   selector:
     matchLabels:
       app: test-controller
@@ -14,9 +15,7 @@ spec:
     spec:
       containers:
         - name: test-controller
-          image: "{{ .Values.testController.image }}"
-          env:
-            - name: REMOTE_SELENIUM_URL
-              value: "http://chrome-node-service:4444/wd/hub"
+          image: "{{ .Values.testController.image.repository }}:{{ .Values.testController.image.tag }}"
           ports:
-            - containerPort: 8000
+            - containerPort: 8080
+          imagePullPolicy: {{ .Values.testController.image.pullPolicy }}

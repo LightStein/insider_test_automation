@@ -1,5 +1,15 @@
+# Test Controller configuration
 testController:
-  image: "nautilus444/test-controller:latest"
+  replicas: 1
+  image:
+    repository: nautilus444/test-controller
+    tag: latest
+    pullPolicy: IfNotPresent
 
+# Chrome Node configuration
 chromeNode:
-  replicas: 3
+  replicas: 1
+  image:
+    repository: nautilus444/selenium-chrome-node
+    tag: latest
+    pullPolicy: IfNotPresent
