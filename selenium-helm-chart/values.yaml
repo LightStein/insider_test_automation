@@ -4,7 +4,7 @@ testController:
   image:
     repository: nautilus444/test-controller
     tag: latest
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
 
 # Chrome Node configuration
 chromeNode:
