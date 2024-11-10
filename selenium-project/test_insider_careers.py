@@ -7,12 +7,12 @@ import pytest
 import time
 import os
 from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 chrome_node_url = "http://chrome-node-service:4444"  # Replace with the appropriate DNS or service address
 
 # Initialize the WebDriver globally (changed to RemoteWebDriver)
-driver = webdriver.Remote(command_executor=chrome_node_url, desired_capabilities=DesiredCapabilities.CHROME)
+options = webdriver.ChromeOptions()
+driver = webdriver.Remote(command_executor=chrome_node_url, options=options)
 driver.maximize_window()
 
 # Base URL
@@ -23,16 +23,12 @@ def setup():
     global driver
     # Read headless options from environment variables
     headless = os.getenv('HEADLESS', 'false').lower() == 'true'
-    options = None
-
-    # Configure WebDriver options based on the browser
-    from selenium.webdriver.chrome.options import Options
-    options = Options()
+    options = webdriver.ChromeOptions()
     if headless:
         options.add_argument('--headless')
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Remote(command_executor=chrome_node_url, desired_capabilities=DesiredCapabilities.CHROME, options=options)
+    driver = webdriver.Remote(command_executor=chrome_node_url, options=options)
 
     # Maximize the browser window and navigate to the base URL
     driver.maximize_window()
@@ -71,7 +67,7 @@ def test_navigate_to_careers_page():
     assert len(team_block_items) == 3, "Teams block content is not visible"
     assert len(life_at_insider_block_items) > 2, "Life at Insider block content is not visible"
 
-# # Test 3: Go to QA careers, filter jobs by Location - Istanbul, Turkey and department - Quality Assurance
+# Test 3: Go to QA careers, filter jobs by Location - Istanbul, Turkey and department - Quality Assurance
 def test_filter_qa_jobs():
     # Go to QA careers
     driver.get(BASE_URL + "/careers/quality-assurance/")
@@ -90,12 +86,12 @@ def test_filter_qa_jobs():
         qa_option = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//li[contains(text(), 'Quality Assurance')]")))
         qa_option.click()
 
-    print ("##################### Before Click Filter #######################")
-#     # Filter jobs by Location
+    print("##################### Before Click Filter #######################")
+    # Filter jobs by Location
     wait = WebDriverWait(driver, 10)
     location_dropdown = wait.until(EC.element_to_be_clickable((By.ID, "select2-filter-by-location-container")))
     location_dropdown.click()
-    print ("##################### Click Filter #######################")
+    print("##################### Click Filter #######################")
 
     # Wait for a short period to check if the list is loaded
     time.sleep(2)
@@ -107,8 +103,7 @@ def test_filter_qa_jobs():
         location_dropdown.click()  # Show dropdown again
     
     # Select Istanbul, Turkey
-    istanbul_option = wait.until(EC.element_to_be_clickable((By.XPATH, "//li[contains(text(), 'Istanbul, Turkey')]")
-    ))
+    istanbul_option = wait.until(EC.element_to_be_clickable((By.XPATH, "//li[contains(text(), 'Istanbul, Turkey')]")))
     istanbul_option.click()
 
     # Check that job list is present
@@ -120,7 +115,7 @@ def test_filter_qa_jobs():
 # Test 4: Verify job details contain "Quality Assurance" and "Istanbul, Turkey"
 def test_check_job_details():
     jobs_list = driver.find_elements(By.CLASS_NAME, "position-list-item-wrapper")
-    print (jobs_list)
+    print(jobs_list)
     
     for job in jobs_list:
         position = job.find_element(By.CLASS_NAME, "position-title").text
@@ -130,7 +125,7 @@ def test_check_job_details():
         assert "Quality Assurance" in position, "Job Position does not contain 'Quality Assurance'"
         assert "Quality Assurance" in department, "Job Department does not contain 'Quality Assurance'"
         assert "Istanbul, Turkey" in location, "Job Location does not contain 'Istanbul, Turkey'"
-        print ("##################### Check Done #######################")
+        print("##################### Check Done #######################")
 
 # Test 5: Click "View Role" button and check Lever Application form page
 def test_view_role_and_lever_page():
