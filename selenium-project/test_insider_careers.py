@@ -7,14 +7,12 @@ import pytest
 import time
 import os
 from selenium.common.exceptions import TimeoutException
-
-from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 chrome_node_url = "http://chrome-node-service:4444"  # Replace with the appropriate DNS or service address
 
-# Initialize the WebDriver
-driver = webdriver.Chrome()
+# Initialize the WebDriver globally (changed to RemoteWebDriver)
+driver = webdriver.Remote(command_executor=chrome_node_url, desired_capabilities=DesiredCapabilities.CHROME)
 driver.maximize_window()
 
 # Base URL
@@ -34,7 +32,7 @@ def setup():
         options.add_argument('--headless')
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Remote(command_executor=chrome_node_url, desired_capabilities=DesiredCapabilities.CHROME)
+    driver = webdriver.Remote(command_executor=chrome_node_url, desired_capabilities=DesiredCapabilities.CHROME, options=options)
 
     # Maximize the browser window and navigate to the base URL
     driver.maximize_window()
@@ -109,7 +107,8 @@ def test_filter_qa_jobs():
         location_dropdown.click()  # Show dropdown again
     
     # Select Istanbul, Turkey
-    istanbul_option = wait.until(EC.element_to_be_clickable((By.XPATH, "//li[contains(text(), 'Istanbul, Turkey')]")))
+    istanbul_option = wait.until(EC.element_to_be_clickable((By.XPATH, "//li[contains(text(), 'Istanbul, Turkey')]")
+    ))
     istanbul_option.click()
 
     # Check that job list is present
@@ -155,6 +154,3 @@ def test_view_role_and_lever_page():
 
 if __name__ == "__main__":
     pytest.main()
-
-
-
