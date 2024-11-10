@@ -23,22 +23,18 @@ BASE_URL = "https://useinsider.com"
 @pytest.fixture(scope="module")
 def setup():
     global driver
-    # Read browser and headless options from environment variables
-    browser = os.getenv('BROWSER', 'chrome').lower()
+    # Read headless options from environment variables
     headless = os.getenv('HEADLESS', 'false').lower() == 'true'
     options = None
 
     # Configure WebDriver options based on the browser
-    if browser == 'chrome':
-        from selenium.webdriver.chrome.options import Options
-        options = Options()
-        if headless:
-            options.add_argument('--headless')
-            options.add_argument('--no-sandbox')
-            options.add_argument('--disable-dev-shm-usage')
-        driver = webdriver.Remote(command_executor=chrome_node_url, desired_capabilities=DesiredCapabilities.CHROME)
-    else:
-        raise ValueError(f"Unsupported browser: {browser}")
+    from selenium.webdriver.chrome.options import Options
+    options = Options()
+    if headless:
+        options.add_argument('--headless')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+    driver = webdriver.Remote(command_executor=chrome_node_url, desired_capabilities=DesiredCapabilities.CHROME)
 
     # Maximize the browser window and navigate to the base URL
     driver.maximize_window()
