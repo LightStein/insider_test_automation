@@ -13,4 +13,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 ENV HEADLESS=true
 
 # Run the tests
-CMD ["pytest", "app/test_insider_careers.py"]
+CMD ["pytest", "/selenium-project/test_insider_careers.py"]
