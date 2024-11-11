@@ -19,6 +19,9 @@ spec:
           ports:
             - containerPort: 4444
           imagePullPolicy: {{ .Values.chromeNode.image.pullPolicy }}
+          env:
+          - name: JAVA_OPTS
+            value: "-Dotel.traces.exporter=none"
           readinessProbe:
             httpGet:
               path: /status
