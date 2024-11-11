@@ -5,7 +5,13 @@ testController:
     repository: nautilus444/test-controller
     tag: latest
     pullPolicy: Always
-
+    resources:
+      requests:
+        memory: "200Mi"
+        cpu: "100m"
+      limits:
+        memory: "400Mi"
+        cpu: "300m"
 # Chrome Node configuration
 chromeNode:
   replicas: 1
@@ -13,3 +19,10 @@ chromeNode:
     repository: selenium/standalone-chrome
     tag: latest
     pullPolicy: IfNotPresent
+    resources:
+      requests:
+        memory: "450Mi"
+        cpu: "150m"
+      limits:
+        memory: "500Mi"
+        cpu: "300m"
