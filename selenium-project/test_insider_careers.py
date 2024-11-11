@@ -6,14 +6,27 @@ from selenium.webdriver.support import expected_conditions as EC
 import pytest
 import time
 import os
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, WebDriverException
 
 chrome_node_url = "http://chrome-node-service:4444"  # Replace with the appropriate DNS or service address
 
-# Initialize the WebDriver globally (changed to RemoteWebDriver)
+# Read headless options from environment variables
+headless = os.getenv('HEADLESS', 'false').lower() == 'true'
 options = webdriver.ChromeOptions()
-driver = webdriver.Remote(command_executor=chrome_node_url, options=options)
-driver.maximize_window()
+if headless:
+    options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+
+# Initialize the WebDriver globally
+try:
+    driver = webdriver.Remote(command_executor=chrome_node_url, options=options)
+    if not headless:
+        driver.maximize_window()
+    print("Driver successfully initialized.")
+except WebDriverException as e:
+    print(f"Error initializing the WebDriver: {e}")
+    driver = None
 
 # Base URL
 BASE_URL = "https://useinsider.com"
@@ -21,19 +34,13 @@ BASE_URL = "https://useinsider.com"
 @pytest.fixture(scope="module")
 def setup():
     global driver
-    # Read headless options from environment variables
-    headless = os.getenv('HEADLESS', 'false').lower() == 'true'
-    options = webdriver.ChromeOptions()
-    if headless:
-        options.add_argument('--headless')
-        options.add_argument('--no-sandbox')
-        options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Remote(command_executor=chrome_node_url, options=options)
-
-    # Maximize the browser window and navigate to the base URL
-    driver.maximize_window()
+    if driver is None:
+        pytest.fail("WebDriver could not be initialized.")
+    
+    # Navigate to the base URL
     driver.get(BASE_URL)
     yield
+    # Properly quit the driver after the test is complete
     driver.quit()
 
 def wait_for_jquery(driver, timeout=30):
