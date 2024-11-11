@@ -26,6 +26,6 @@ spec:
             httpGet:
               path: /status
               port: 4444
-            initialDelaySeconds: 60
-            periodSeconds: 30
-            failureThreshold: 40
+            initialDelaySeconds: 360
+            periodSeconds: 120
+            failureThreshold: 120
