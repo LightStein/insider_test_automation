@@ -4,6 +4,7 @@ kind: Deployment
 metadata:
   name: {{ .Release.Name }}-test-controller
 spec:
+  serviceAccountName: s3-access-sa
   replicas: {{ .Values.testController.replicas }}
   selector:
     matchLabels:

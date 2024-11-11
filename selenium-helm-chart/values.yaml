@@ -12,6 +12,7 @@ testController:
       limits:
         memory: "400Mi"
         cpu: "300m"
+  role: arn:aws:iam::242201276816:role/selenium_eks_role
 # Chrome Node configuration
 chromeNode:
   replicas: 1
