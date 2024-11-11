@@ -29,6 +29,6 @@ spec:
               httpHeaders:
               - name: Accept
                 value: application/json
-            initialDelaySeconds: 360
-            periodSeconds: 120
-            failureThreshold: 120
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 3
