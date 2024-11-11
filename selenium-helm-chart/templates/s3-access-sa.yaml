@@ -1,3 +1,4 @@
+# templates/s3-access-sa.yaml
 apiVersion: v1
 kind: ServiceAccount
 metadata:
