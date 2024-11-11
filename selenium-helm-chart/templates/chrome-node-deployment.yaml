@@ -26,6 +26,9 @@ spec:
             httpGet:
               path: /status
               port: 4444
+              httpHeaders:
+              - name: Accept
+                value: application/json
             initialDelaySeconds: 360
             periodSeconds: 120
             failureThreshold: 120
