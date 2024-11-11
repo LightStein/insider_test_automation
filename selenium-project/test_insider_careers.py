@@ -54,10 +54,12 @@ def wait_for_jquery(driver, timeout=30):
 
 # Test 1: Check if Insider homepage is opened
 def test_homepage_opened(setup):
+    wait_for_jquery(driver)
     assert "Insider" in driver.title, "Home page not opened"
     
 # Test 2: Check Career page, its blocks - Locations, Teams, Life at Insider
 def test_navigate_to_careers_page():
+    wait_for_jquery(driver)
     # Select "Company" menu and then "Careers"
     WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[@class='nav-link dropdown-toggle' and contains(normalize-space(text()), 'Company')]"))).click()
     WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[contains(@href, '/careers/') and contains(text(), 'Careers')]"))).click()
