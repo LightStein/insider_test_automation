@@ -10,17 +10,10 @@ from selenium.common.exceptions import TimeoutException
 
 chrome_node_url = "http://chrome-node-service:4444"  # Replace with the appropriate DNS or service address
 
-# Initialize the WebDriver globally (changed to RemoteWebDriver)
-options = webdriver.ChromeOptions()
-driver = webdriver.Remote(command_executor=chrome_node_url, options=options)
-driver.maximize_window()
-
-# Base URL
 BASE_URL = "https://useinsider.com"
 
 @pytest.fixture(scope="module")
 def setup():
-    global driver
     # Read headless options from environment variables
     headless = os.getenv('HEADLESS', 'false').lower() == 'true'
     options = webdriver.ChromeOptions()
@@ -28,12 +21,15 @@ def setup():
         options.add_argument('--headless')
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
-    driver = webdriver.Remote(command_executor=chrome_node_url, options=options)
 
-    # Maximize the browser window and navigate to the base URL
+    # Initialize the WebDriver
+    driver = webdriver.Remote(command_executor=chrome_node_url, options=options)
     driver.maximize_window()
     driver.get(BASE_URL)
-    yield
+    
+    yield driver
+    
+    # Properly quit the driver after the test is complete
     driver.quit()
 
 def wait_for_jquery(driver, timeout=30):
@@ -47,10 +43,12 @@ def wait_for_jquery(driver, timeout=30):
 
 # Test 1: Check if Insider homepage is opened
 def test_homepage_opened(setup):
+    driver = setup
     assert "Insider" in driver.title, "Home page not opened"
     
 # Test 2: Check Career page, its blocks - Locations, Teams, Life at Insider
-def test_navigate_to_careers_page():
+def test_navigate_to_careers_page(setup):
+    driver = setup
     # Select "Company" menu and then "Careers"
     WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[@class='nav-link dropdown-toggle' and contains(normalize-space(text()), 'Company')]"))).click()
     WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[contains(@href, '/careers/') and contains(text(), 'Careers')]"))).click()
@@ -68,7 +66,8 @@ def test_navigate_to_careers_page():
     assert len(life_at_insider_block_items) > 2, "Life at Insider block content is not visible"
 
 # Test 3: Go to QA careers, filter jobs by Location - Istanbul, Turkey and department - Quality Assurance
-def test_filter_qa_jobs():
+def test_filter_qa_jobs(setup):
+    driver = setup
     # Go to QA careers
     driver.get(BASE_URL + "/careers/quality-assurance/")
     
@@ -113,7 +112,8 @@ def test_filter_qa_jobs():
     assert len(jobs_list) > 0, "No jobs found for the given filters"
 
 # Test 4: Verify job details contain "Quality Assurance" and "Istanbul, Turkey"
-def test_check_job_details():
+def test_check_job_details(setup):
+    driver = setup
     jobs_list = driver.find_elements(By.CLASS_NAME, "position-list-item-wrapper")
     print(jobs_list)
     
@@ -128,7 +128,8 @@ def test_check_job_details():
         print("##################### Check Done #######################")
 
 # Test 5: Click "View Role" button and check Lever Application form page
-def test_view_role_and_lever_page():
+def test_view_role_and_lever_page(setup):
+    driver = setup
     jobs_list = driver.find_elements(By.CLASS_NAME, "position-list-item-wrapper")
     assert len(jobs_list) > 0, "No job items found"
     
