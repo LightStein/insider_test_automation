@@ -19,3 +19,10 @@ spec:
           ports:
             - containerPort: 4444
           imagePullPolicy: {{ .Values.chromeNode.image.pullPolicy }}
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: 4444
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 10

@@ -10,6 +10,6 @@ testController:
 chromeNode:
   replicas: 1
   image:
-    repository: nautilus444/chrome-node
+    repository: selenium/standalone-chrome:latest
     tag: latest
     pullPolicy: IfNotPresent
