@@ -3,14 +3,20 @@ FROM python:3.9-slim
 # Set the working directory
 WORKDIR /app
 
-# Copy the project files to the container
-COPY ./selenium-project/ ./
-RUN chmod +x upload_to_s3.sh
-# Install Python dependencies
+# Copy necessary files
+COPY ./selenium-project/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Set environment variable to use headless mode
-ENV HEADLESS=true
+# Copy the rest of the application files
+COPY ./selenium-project/ ./
 
-# Run the tests
-CMD ["pytest", "test_insider_careers.py"]
+# Set environment variables
+ENV HEADLESS=true
+ENV PYTHONUNBUFFERED=1
+
+# Add an entrypoint script
+COPY ./selenium-project/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+# Run entrypoint script
+ENTRYPOINT ["/app/entrypoint.sh"]
