@@ -1,22 +1,27 @@
-# templates/test-controller-deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
+# templates/test-controller-job.yaml
+apiVersion: batch/v1
+kind: Job
 metadata:
   name: {{ .Release.Name }}-test-controller
 spec:
-  replicas: {{ .Values.testController.replicas }}
-  selector:
-    matchLabels:
-      app: test-controller
+  completions: {{ .Values.testController.job.completions }}
+  parallelism: {{ .Values.testController.job.parallelism }}
+  backoffLimit: {{ .Values.testController.job.backoffLimit }}
   template:
     metadata:
       labels:
         app: test-controller
     spec:
       serviceAccountName: s3-access-sa
+      restartPolicy: Never
       containers:
         - name: test-controller
           image: "{{ .Values.testController.image.repository }}:{{ .Values.testController.image.tag }}"
-          ports:
-            - containerPort: 8080
           imagePullPolicy: {{ .Values.testController.image.pullPolicy }}
+          resources:
+            requests:
+              memory: "{{ .Values.testController.image.resources.requests.memory }}"
+              cpu: "{{ .Values.testController.image.resources.requests.cpu }}"
+            limits:
+              memory: "{{ .Values.testController.image.resources.limits.memory }}"
+              cpu: "{{ .Values.testController.image.resources.limits.cpu }}"

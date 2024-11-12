@@ -1,6 +1,9 @@
 # Test Controller configuration
 testController:
-  replicas: 1
+  job:
+    completions: 1               # Number of times the Job should complete
+    parallelism: 1               # Number of pods to run in parallel
+    backoffLimit: 0              # Prevents retries if the Job fails
   image:
     repository: nautilus444/test-controller
     tag: latest
@@ -13,6 +16,7 @@ testController:
         memory: "400Mi"
         cpu: "300m"
   role: arn:aws:iam::242201276816:role/selenium_eks_role
+
 # Chrome Node configuration
 chromeNode:
   replicas: 1
