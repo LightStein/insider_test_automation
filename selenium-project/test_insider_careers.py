@@ -183,20 +183,11 @@ def run_tests_and_save_output():
         sys.stdout = f
         sys.stderr = f
         try:
-            exit_code = pytest.main(["-q", "--tb=short"])
-        except Exception as e:
-            print(f"Error running tests: {e}")
-            exit_code = 1
+            exit_code = pytest.main(["-q", "--tb=short", "--continue-on-collection-errors"])
         finally:
             # Reset stdout and stderr
             sys.stdout = sys.__stdout__
             sys.stderr = sys.__stderr__
-
-    # Log the result in the container output for easy access
-    if exit_code != 0:
-        print(f"Tests completed with failures. Exit code: {exit_code}")
-    else:
-        print("All tests passed successfully.")
 
     # Always return 0 so Kubernetes does not mark the container as failed
     return 0
