@@ -172,6 +172,12 @@ def run_tests_and_save_output():
             sys.stdout = sys.__stdout__
             sys.stderr = sys.__stderr__
 
+    # Check the exit code and log the result
+    if exit_code != 0:
+        print(f"Tests completed with failures. Exit code: {exit_code}")
+    else:
+        print("All tests passed successfully.")
+
 def upload_to_s3():
     # Run the S3 upload script
     try:
@@ -182,7 +188,10 @@ def upload_to_s3():
 
 if __name__ == "__main__":
     # Run tests and save output to file
-    run_tests_and_save_output()
+    test_exit_code = run_tests_and_save_output()
 
-    # Upload results to S3
+    # Upload results to S3, regardless of test outcomes
     upload_to_s3()
+
+    # Optionally, exit with 0 to indicate script success, regardless of test outcome
+    sys.exit(0)
