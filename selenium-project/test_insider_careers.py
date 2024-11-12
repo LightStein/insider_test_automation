@@ -182,17 +182,23 @@ def run_tests_and_save_output():
         sys.stdout = f
         sys.stderr = f
         try:
-            pytest.main(["-q", "--tb=short"])
+            exit_code = pytest.main(["-q", "--tb=short"])
+        except Exception as e:
+            print(f"Error running tests: {e}")
+            exit_code = 1
         finally:
             # Reset stdout and stderr
             sys.stdout = sys.__stdout__
             sys.stderr = sys.__stderr__
 
-    # Check the exit code and log the result
+    # Log the result in the container output for easy access
     if exit_code != 0:
         print(f"Tests completed with failures. Exit code: {exit_code}")
     else:
         print("All tests passed successfully.")
+
+    # Return the exit code for further handling
+    return exit_code
 
 def upload_to_s3():
     # Run the S3 upload script
@@ -206,8 +212,13 @@ if __name__ == "__main__":
     try:
         # Run tests and capture the outcome
         test_exit_code = run_tests_and_save_output()
+    except Exception as e:
+        # Capture any unexpected exceptions and continue
+        print(f"Unexpected error occurred: {e}")
+        test_exit_code = 1
     finally:
         # Ensure upload to S3 happens regardless of test results
         upload_to_s3()
-        # Optionally, exit with 0 to indicate script success, regardless of test outcome
-        sys.exit(0)
+
+    # Optionally, exit with 0 to indicate script success, regardless of test outcome
+    sys.exit(0)
