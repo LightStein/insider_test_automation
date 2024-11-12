@@ -176,7 +176,8 @@ def test_view_role_and_lever_page():
         print("test_view_role_and_lever_page Failed")
 
 def run_tests_and_save_output():
-    # Run pytest and save output to 'test_output.txt'
+    """Runs pytest, captures output, and prevents non-zero exit code propagation."""
+    exit_code = 0
     with open("test_output.txt", "w") as f:
         # Redirect stdout and stderr to 'test_output.txt'
         sys.stdout = f
@@ -197,8 +198,8 @@ def run_tests_and_save_output():
     else:
         print("All tests passed successfully.")
 
-    # Return the exit code for further handling
-    return exit_code
+    # Always return 0 so Kubernetes does not mark the container as failed
+    return 0
 
 def upload_to_s3():
     # Run the S3 upload script
@@ -211,14 +212,13 @@ def upload_to_s3():
 if __name__ == "__main__":
     try:
         # Run tests and capture the outcome
-        test_exit_code = run_tests_and_save_output()
+        run_tests_and_save_output()
     except Exception as e:
         # Capture any unexpected exceptions and continue
         print(f"Unexpected error occurred: {e}")
-        test_exit_code = 1
     finally:
         # Ensure upload to S3 happens regardless of test results
         upload_to_s3()
 
-    # Optionally, exit with 0 to indicate script success, regardless of test outcome
+    # Forcefully exit with 0 to prevent Kubernetes from marking the pod as failed
     sys.exit(0)
