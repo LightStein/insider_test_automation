@@ -8,6 +8,7 @@ import time
 import os
 import subprocess
 from selenium.common.exceptions import TimeoutException, WebDriverException
+import sys
 
 chrome_node_url = "http://chrome-node-service:4444"  # Replace with the appropriate DNS or service address
 
@@ -187,11 +188,11 @@ def upload_to_s3():
         print(f"S3 upload failed: {e}")
 
 if __name__ == "__main__":
-    # Run tests and save output to file
-    test_exit_code = run_tests_and_save_output()
-
-    # Upload results to S3, regardless of test outcomes
-    upload_to_s3()
-
-    # Optionally, exit with 0 to indicate script success, regardless of test outcome
-    sys.exit(0)
+    try:
+        # Run tests and capture the outcome
+        test_exit_code = run_tests_and_save_output()
+    finally:
+        # Ensure upload to S3 happens regardless of test results
+        upload_to_s3()
+        # Optionally, exit with 0 to indicate script success, regardless of test outcome
+        sys.exit(0)
