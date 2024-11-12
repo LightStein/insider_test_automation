@@ -6,6 +6,7 @@ from selenium.webdriver.support import expected_conditions as EC
 import pytest
 import time
 import os
+import subprocess
 from selenium.common.exceptions import TimeoutException, WebDriverException
 
 chrome_node_url = "http://chrome-node-service:4444"  # Replace with the appropriate DNS or service address
@@ -157,5 +158,22 @@ def test_view_role_and_lever_page():
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
 
+def upload_to_s3():
+    try:
+        subprocess.check_call([
+            "aws", "s3", "cp", "test_output.txt", "s3://selenium-test-results-anri-giorganashvili/insider_test_results/test_output.txt"
+        ])
+        print("Upload successful!")
+    except subprocess.CalledProcessError as e:
+        print(f"Upload failed: {e}")
+
+
 if __name__ == "__main__":
     pytest.main()
+    # Run pytest and save output to test_output.txt
+    with open("test_output.txt", "w") as f:
+        # Run pytest as a subprocess to redirect output
+        result = subprocess.run(["pytest", "-q", "--tb=short"], stdout=f, stderr=subprocess.STDOUT)
+    
+    # Upload the result file to S3
+    upload_to_s3()
