@@ -13,4 +13,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 ENV HEADLESS=true
 
 # Run the tests
-CMD ["sh", "-c", "pytest --junitxml=report.xml && aws s3 cp report.xml s3://selenium-test-results-anri-giorganashvili/insider_test_results/"]
+CMD ["pytest", "test_insider_careers.py"]

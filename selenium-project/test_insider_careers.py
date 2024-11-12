@@ -158,5 +158,31 @@ def test_view_role_and_lever_page():
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
 
+
+def run_tests_and_save_output():
+    # Run pytest and save output to 'test_output.txt'
+    with open("test_output.txt", "w") as f:
+        # Redirect stdout and stderr to 'test_output.txt'
+        sys.stdout = f
+        sys.stderr = f
+        try:
+            pytest.main(["-q", "--tb=short"])
+        finally:
+            # Reset stdout and stderr
+            sys.stdout = sys.__stdout__
+            sys.stderr = sys.__stderr__
+
+def upload_to_s3():
+    # Run the S3 upload script
+    try:
+        subprocess.run(["./upload_to_s3.sh"], check=True)
+        print("S3 upload successful.")
+    except subprocess.CalledProcessError as e:
+        print(f"S3 upload failed: {e}")
+
 if __name__ == "__main__":
-    pytest.main()
+    # Run tests and save output to file
+    run_tests_and_save_output()
+
+    # Upload results to S3
+    upload_to_s3()
