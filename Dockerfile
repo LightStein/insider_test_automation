@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Copy the project files to the container
 COPY ./selenium-project/ ./
-
+RUN chmod +x upload_to_s3.sh
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
