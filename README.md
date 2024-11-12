@@ -1,156 +1,124 @@
-# Project Folder Structure
+# TestOps Selenium Test Automation System
 
-The following guide explains how to implement the Helm chart for deploying Selenium Test Controller and Chrome Node.
+## Overview of the System
 
-## Folder Structure:
-```
-selenium-helm-chart/
-│
-├── Chart.yaml                # Helm chart metadata
-├── values.yaml               # Default values for the Helm chart
-└── templates/                # Directory containing Kubernetes manifests
-    ├── test-controller-deployment.yaml  # Deployment for Test Controller
-    ├── chrome-node-deployment.yaml      # Deployment for Chrome Node
-    └── chrome-node-service.yaml         # Service for Chrome Node
-```
+This system is designed for the automated testing of the Insider website using Selenium WebDriver in Python. The project is containerized and orchestrated via Kubernetes, making it scalable and portable for both local and cloud-based environments. The architecture is composed of:
 
-## Step-by-Step Guide
+1. **Test Controller Pod**: Responsible for running the Selenium test cases. This pod uses pytest to execute test cases defined in the `/tests` directory.
+2. **Chrome Node Pod**: Runs Selenium WebDriver in a headless Chrome browser, executing commands received from the Test Controller Pod.
+3. **Inter-Pod Communication**: The Test Controller Pod sends Selenium commands to the Chrome Node Pod via HTTP requests, enabling remote testing in a Kubernetes cluster.
+4. **Persistent S3 Storage**: Test results are saved locally and then uploaded to AWS S3 for permanent storage.
 
-### 1. Set Up Folder Structure
+The solution is designed to automatically scale the Chrome Node Pod according to load, using Kubernetes deployments with configurable replica counts.
 
-- Create a root directory named `selenium-helm-chart/`.
-- Create a file named `Chart.yaml` inside the root directory to define the Helm chart metadata.
-- Create a file named `values.yaml` in the root directory to set default values.
-- Create a folder named `templates/` inside the root directory, which will contain Kubernetes manifests.
+## Deployment Instructions
 
-### 2. Create Files
+### Local Deployment
 
-#### 2.1. Chart.yaml
-Define the chart metadata:
+### Prerequisites
 
-```yaml
-apiVersion: v2
-name: selenium-tests-chart
-description: A Helm chart for deploying Selenium Test Controller and Chrome Node
-version: 0.1.0
-type: application
-```
+- Docker installed on your local machine.
+- Python 3.9 installed.
+- Kubernetes Minikube or Docker Desktop Kubernetes for running the local cluster.
 
-#### 2.2. values.yaml
-Define the values used by the Helm templates:
+### Steps
 
-```yaml
-testController:
-  image: "your-dockerhub-user/test-controller:latest"
+1. **Clone the Repository**:
+    
+    ```
+    git clone https://github.com/LightStein/insider_test_automation.git
+    cd insider_test_automation
+    ```
+    
+2. **Build the Docker Image**:
+    
+    ```
+    docker build -t selenium-test-runner:latest .
+    ```
+    
+3. **Deploy Kubernetes Resources**: Ensure that Kubernetes is up and running (via Minikube):
+    
+    ```
+    python3 deploy_script.py
+    ```
+    
+4. **Verify the Deployment**:
+Use the following command to check if the pods are running successfully:
+    
+    ```
+    kubectl get pods
+    ```
+    
+5. **Run Tests**:
+Tests will automatically be triggered upon deployment of the Test Controller Pod. Logs of the execution can be accessed using:
+    
+    ```
+    kubectl logs <test-controller-pod-name>
+    ```
+    
 
-chromeNode:
-  replicas: 3
-```
+### AWS EKS Deployment
 
-#### 2.3. templates/test-controller-deployment.yaml
-Define the deployment for the Test Controller:
+### Prerequisites
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: test-controller-deployment
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: test-controller
-  template:
+- AWS CLI configured with credentials.
+- AWS EKS cluster set up.
+- kubectl and eksctl installed on your EC2 instance.
+
+### Steps
+
+1. **Create an EKS Cluster**:
+Use `eksctl` to create an EKS cluster:
+    
+    ```bash
+    eksctl create cluster --name selenium-cluster --version 1.21 --region us-east-1 --nodegroup-name selenium-nodes --node-type t2.micro --nodes 2
+    ```
+    
+2. **Build and Push Docker Image to Docker Hub**:
+Build the Docker image and push it to Docker Hub:
+    
+    ```bash
+    docker build -t nautilus444/test-controller:latest .
+    docker push nautilus444/test-controller:latest
+    ```
+    
+3. **Deploy Kubernetes Resources**: Automatically applies the Kubernetes YAML files to the EKS cluster:
+    
+    ```bash
+    python3 deploy_script.py
+    ```
+    
+4. **Verify Deployment and Execute Tests**:
+Use `kubectl get pods` to ensure all pods are running, then monitor the logs:
+    
+    ```bash
+    kubectl logs <test-controller-pod-name>
+    ```
+    
+5. **Access Test Results**:
+Test results are uploaded to an S3 bucket defined in the configuration. Check the bucket for the results after execution.
+
+## Inter-Pod Communication Explanation
+
+The TestOps system leverages Kubernetes services to establish communication between the Test Controller Pod and the Chrome Node Pod. The Chrome Node Pod hosts a Selenium server that listens for commands sent by the Test Controller Pod.
+
+- **Service Discovery**: Kubernetes services expose the Chrome Node Pod via a DNS address (`chrome-node-service:4444`), making it accessible from within the Kubernetes cluster.
+    
+    ```yaml
+    # Source: selenium-tests-chart/templates/chrome-node-service.yaml
+    apiVersion: v1
+    kind: Service
     metadata:
-      labels:
-        app: test-controller
+      name: chrome-node-service
     spec:
-      containers:
-        - name: test-controller
-          image: "{{ .Values.testController.image }}"
-          env:
-            - name: REMOTE_SELENIUM_URL
-              value: "http://chrome-node-service:4444/wd/hub"
-          ports:
-            - containerPort: 8000
-```
-
-#### 2.4. templates/chrome-node-deployment.yaml
-Define the deployment for Chrome Node:
-
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: chrome-node-deployment
-spec:
-  replicas: "{{ .Values.chromeNode.replicas }}"
-  selector:
-    matchLabels:
-      app: chrome-node
-  template:
-    metadata:
-      labels:
+      selector:
         app: chrome-node
-    spec:
-      containers:
-        - name: chrome-node
-          image: selenium/standalone-chrome:latest
-          ports:
-            - containerPort: 4444
-```
-
-#### 2.5. templates/chrome-node-service.yaml
-Define the service for Chrome Node:
-
-```yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: chrome-node-service
-spec:
-  selector:
-    app: chrome-node
-  ports:
-    - protocol: TCP
-      port: 4444
-      targetPort: 4444
-  type: ClusterIP
-```
-
-## 3. Package and Deploy the Helm Chart
-
-### 3.1. Package the Helm Chart
-Use the following command to package the Helm chart:
-
-```sh
-helm package selenium-helm-chart
-```
-
-### 3.2. Install the Helm Chart
-To install the Helm chart, use the command:
-
-```sh
-helm install selenium-tests selenium-helm-chart/
-```
-This command will deploy both the Test Controller Pod and Chrome Node Pod along with the necessary services.
-
-### 3.3. Verify Deployments
-To verify that the pods are running:
-
-```sh
-kubectl get pods
-```
-You should see two different deployments (`test-controller-deployment` and `chrome-node-deployment`) and the respective pods.
-
-## 4. Updating the Deployment
-If you need to update the Helm chart (e.g., change the number of replicas or update the image), edit the `values.yaml` file and use the following command:
-
-```sh
-helm upgrade selenium-tests selenium-helm-chart/
-```
-This command will apply the changes to the existing deployments.
-
-### Notes
-- Ensure you have Helm and `kubectl` installed and configured to communicate with your Kubernetes cluster.
-- The Docker images (`your-dockerhub-user/test-controller:latest`) should be built and pushed to a container registry before deploying.
+      ports:
+        - protocol: TCP
+          port: 4444
+          targetPort: 4444
+      type: ClusterIP
+    ```
+    
+- **Communication Flow**: The Test Controller Pod sends commands to the Chrome Node Pod over HTTP using the WebDriver protocol. The Chrome Node Pod executes these commands in a headless Chrome browser and returns the responses to the Test Controller Pod.
+- **Scaling**: The system is designed to handle multiple Chrome Node Pods (from 1 to 5 replicas). The Test Controller can distribute the Selenium tests across available Chrome Node Pods, enhancing parallel execution and reducing test run times.
