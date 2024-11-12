@@ -1,4 +1,3 @@
-# templates/test-controller-job.yaml
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -25,3 +24,19 @@ spec:
             limits:
               memory: "{{ .Values.testController.image.resources.limits.memory }}"
               cpu: "{{ .Values.testController.image.resources.limits.cpu }}"
+      initContainers:
+        - name: wait-for-chrome
+          image: bitnami/kubectl  # Lightweight image with both curl and jq
+          command:
+            - "sh"
+            - "-c"
+            - |
+              until curl -s http://chrome-node-service:4444/status | jq -e '.value.ready == true' > /dev/null; do
+                echo "Waiting for Chrome node to be ready..."
+                sleep 5
+              done
+              echo "Chrome node is ready!"
+          resources:
+            requests:
+              memory: "10Mi"
+              cpu: "10m"
